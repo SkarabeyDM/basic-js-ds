@@ -13,26 +13,30 @@ const { ListNode } = require('../extensions/list-node.js');
  * queue.dequeue(); // returns the top element from queue and deletes it, returns 1
  * queue.getUnderlyingList() // returns { value: 3, next: null }
  */
-class Queue {
+class Queue
+{
 
-  #back = null
-  #front
+  back = null
+  front = null
 
-  getUnderlyingList = () => this.#front
+  getUnderlyingList = () => this.front
 
-  enqueue(value) {
+  enqueue(value)
+  {
     const node = new ListNode(value)
-    if (this.#back !== null)
-      this.#back.next = node
+    
+    if (this.back)
+      this.back.next = node
     else
-      this.#front = node
+      this.front = node
 
-    this.#back = node
+    this.back = node
   }
 
-  dequeue() {
-    const value = this.#front.value
-    this.#front = this.#front.next
+  dequeue()
+  {
+    const { value } = this.front
+    this.front = this.front.next
     return value
   }
 }

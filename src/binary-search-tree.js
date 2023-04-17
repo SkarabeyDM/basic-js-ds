@@ -6,103 +6,162 @@ const { Node } = require('../extensions/list-tree.js');
 * Implement simple binary search tree according to task description
 * using Node from extensions
 */
-class BinarySearchTree {
-
+class BinarySearchTree
+{
+  /**@property {Node} */
   #root = null
-  #min = null
-  #max = null
+
+  add(data)
+  {
+    const dataNode = new Node(data)
+    if (!this.#root) {
+      this.#root = dataNode
+      return
+    }
+    const { nearest } = this.getNode(data)
+    if (nearest)
+      if (data < nearest.data) nearest.left = dataNode
+      else if (data > nearest.data) nearest.right = dataNode
+    dataNode.parent = nearest
+  }
+
+  getNode(data, node = this.#root, callback = (data, node = this.#root) =>
+  {
+    let dir
+    if (!node || data === node.data)
+      dir = 0;
+    else if (data < node.data)
+      dir = -1;
+    else if (data > node.data)
+      dir = 1;
+    return dir
+  })
+  {
+    let next
+
+    while (true) {
+      const dir = callback(data, node)
+      if (dir === 0) return { target: node, nearest: node, parent: node?.parent || null }
+
+
+      if (dir === -1) {
+        next = node.left
+      } else if (dir === 1) {
+        next = node.right
+      } else
+        throw new TypeError("Disparate data")
+
+      if (next) node = next
+      else return { target: next, nearest: node, parent: node?.parent || null }
+    }
+  }
+
+  remove(data)
+  {
+    const { target } = this.getNode(data)
+    if (!target) return null
+
+    const nodeStatus = ({ left, right }) =>
+    {
+      let status
+
+      if (left && right) status = "full"
+      else if (left) status = "left"
+      else if (right) status = "right"
+      else status = "leaf"
+
+      return status
+    };
+
+    const removeNode = (prev, newNode) =>
+    {
+      const { parent } = prev
+      if (newNode) newNode.parent = parent
+      if (parent) {
+        if (parent.left === prev) parent.left = newNode
+        else parent.right = newNode
+      }
+      else this.#root = newNode
+    }
+
+    const { parent } = target
+    const status = nodeStatus(target)
+    let predecessor = null
+    switch (status) {
+
+      case "full":
+        predecessor = this.getNode(data, target.right).nearest
+        target.data = predecessor.data
+        removeNode(predecessor, predecessor.right)
+        break;
+
+      case "leaf": removeNode(target, null); break;
+
+      default:
+        predecessor = target[status];
+        removeNode(target, predecessor);
+        break;
+    }
+
+    /* this.render() */
+  }
+
+  find(data)
+  {
+    return this.getNode(data).target
+  }
+
+  has(data)
+  {
+    return !!this.find(data)
+  }
 
   root = () => this.#root
-  #getDir(value, { data, left, right }) {
-    return value > data ? right : left
-  }
-  #isLeaf = ({ left, right }) => !(left || right)
 
-  getNode(value = undefined, node = this.#root, prev = null, beforeNull = false) {
-    if (!node || value === undefined) return { node, prev }
+  min = () => this.getNode(null, this.#root, (_, node) => node?.left ? -1 : 0).nearest?.data || null
 
-    const { data } = node
-    const dir = this.#getDir(value, node)
+  max = () => this.getNode(null, this.#root, (_, node) => node?.right ? 1 : 0).nearest?.data || null
 
+  /* render()
+  {
+    const layers = []
+    function writeLayer(node, layer = 0)
+    {
+      if (!node) return
 
-    if (value === data || (beforeNull && !dir))
-      return { node, prev }
+      if (!layers[layer]) layers.push([])
+      layers[layer].push(node.data)
 
-    return this.getNode(value, dir, node, beforeNull)
-  }
-
-
-  add(data) {
-    if (!this.#root) {
-      this.#root = new Node(data)
-
-      // Set range
-      this.#max = data
-      this.#min = data
+      writeLayer(node.left, layer + 1)
+      writeLayer(node.right, layer + 1)
     }
-    else {
-      const { node, prev } = this.getNode(data)
-      let newNode = new Node(data)
-      if (!node) {
-        if (data > prev.data)
-          prev.right = newNode
-        else prev.left = newNode
-      }
 
-      // Set range
-      if (data > this.#max)
-        this.#max = data
-      else if (data < this.#min || this.#min === null)
-        this.#min = data
-    }
-  }
+    writeLayer(this.#root)
 
-  has(data) {
-    return !!this.getNode(data)["node"]
-  }
-
-  find(data) {
-    return this.getNode(data)["node"]
-  }
-
-  remove(data) {
-    let { node, prev } = this.getNode(data)
-    if (node) {
-      if(this.#isLeaf(node)){
-        prev[prevDir ? "right" : "left"] = null
-      } else{
-        const prevDir = prev.data < node.data
-        let { node: nextNode, prev: nextPrev } = this.getNode(data, node.left || node.right, node, true)
-        console.log(nextNode)
-        //node.data = nextNode.data
-        prev[prevDir ? "right" : "left"] = nextNode
-        console.log(this.#root)
-      }
-
-
-
-    }
-  }
-
-  min = () => this.#min
-
-  max = () => this.#max
+    console.table(layers)
+  } */
 }
 
-const BST = new BinarySearchTree()
-BST.add(7)
-BST.add(3)
-BST.add(4)
-BST.add(5)
-BST.add(6)
-BST.add(9)
-BST.add(8)
-BST.add(12)
-BST.remove(3)
 
-let output = BST.getNode(6)
+const tree = new BinarySearchTree()
+tree.add(9);
+tree.add(14);
+tree.add(2);
+tree.add(6);
+tree.add(128);
+tree.add(8);
+tree.add(31);
+tree.add(54);
+tree.add(1);
+/* tree.render() */
+tree.remove(14);
+tree.remove(8);
+tree.remove(9);
 
-console.log(output)
+//let output = tree.remove(9)//root()
+
+
+console.log(/* tree.max(), tree.min(), tree.has(128) */ tree.has(8))
 
 module.exports = {
   BinarySearchTree
